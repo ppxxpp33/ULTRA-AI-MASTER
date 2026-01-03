@@ -2,27 +2,43 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>ULTRA AI MASTER V.12 - MULTI-CORE LOGIC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ULTRA AI MASTER V.13 - ALL DEVICES</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;900&display=swap" rel="stylesheet">
     <style>
-        body { background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); color: #fff; font-family: 'Kanit', sans-serif; height: 100vh; overflow: hidden; margin: 0; padding: 0; }
+        body { 
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); 
+            color: #fff; 
+            font-family: 'Kanit', sans-serif; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 0;
+            touch-action: manipulation;
+        }
         .cyber-panel { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(56, 189, 248, 0.2); }
         .neon-blue { text-shadow: 0 0 10px #3b82f6; color: #60a5fa; }
         .neon-red { text-shadow: 0 0 10px #ef4444; color: #f87171; }
-        .bead { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 11px; flex-shrink: 0; }
-        .custom-scrollbar::-webkit-scrollbar { height: 10px; width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; border: 2px solid #0f172a; }
+        .bead { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 10px; flex-shrink: 0; }
+        
+        /* Custom Scrollbar สำหรับตารางลูกบอล */
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
+
+        @media (max-width: 768px) {
+            .bead { width: 22px; height: 22px; font-size: 9px; }
+            .main-container { padding: 8px; }
+        }
     </style>
 </head>
 <body>
     <div id="root"></div>
     <script type="text/babel">
-        const { useState, useMemo } = React;
+        const { useState, useMemo, useEffect } = React;
 
         const App = () => {
             const [history, setHistory] = useState([]);
@@ -32,38 +48,20 @@
             const [step, setStep] = useState(1);
             const [currentBalance, setCurrentBalance] = useState(1000);
 
-            // --- หัวใจหลัก: ระบบคำนวณใหม่ V.12 ---
             const ai = useMemo(() => {
                 const filtered = history.filter(h => h !== 'T');
-                if (filtered.length < 5) return { side: 'รอข้อมูล', rate: 0, formula: 'รวบรวมสถิติ' };
-
+                if (filtered.length < 5) return { side: 'รอข้อมูล', rate: 0, formula: 'เก็บสถิติ' };
                 const last5 = filtered.slice(-5);
                 const p = filtered.filter(x => x === 'P').length;
                 const b = filtered.filter(x => x === 'B').length;
                 
-                let side = 'รอข้อมูล';
-                let rate = 0;
-                let formula = '';
-
-                // 1. ตรวจจับการสลับ (Ping-Pong Core)
-                const isPingPong = last5[4] !== last5[3] && last5[3] !== last5[2];
-                // 2. ตรวจจับการไหล (Streak Core)
+                let side = 'รอข้อมูล', rate = 0, formula = '';
                 const isStreak = last5[4] === last5[3] && last5[3] === last5[2];
+                const isPingPong = last5[4] !== last5[3] && last5[3] !== last5[2];
 
-                if (isStreak) {
-                    side = last5[4] === 'P' ? 'PLAYER' : 'BANKER'; // ตามมังกร
-                    formula = 'STREAK FOLLOW';
-                    rate = 85;
-                } else if (isPingPong) {
-                    side = last5[4] === 'P' ? 'BANKER' : 'PLAYER'; // ตามปิงปอง
-                    formula = 'PING-PONG SYNC';
-                    rate = 82;
-                } else {
-                    // 3. กฎความน่าจะเป็น (Probability Logic)
-                    side = p > b ? 'BANKER' : 'PLAYER';
-                    formula = 'PROBABILITY BALANCING';
-                    rate = 78;
-                }
+                if (isStreak) { side = last5[4] === 'P' ? 'PLAYER' : 'BANKER'; formula = 'ตามมังกร'; rate = 85; }
+                else if (isPingPong) { side = last5[4] === 'P' ? 'BANKER' : 'PLAYER'; formula = 'ตามปิงปอง'; rate = 82; }
+                else { side = p > b ? 'BANKER' : 'PLAYER'; formula = 'สมดุลสถิติ'; rate = 78; }
 
                 return { side, rate, formula };
             }, [history]);
@@ -74,23 +72,10 @@
                 if (res !== 'T' && ai.side !== 'รอข้อมูล') {
                     const sideMap = { 'PLAYER': 'P', 'BANKER': 'B' };
                     const isWin = res === sideMap[ai.side];
-                    
-                    setLogs(prev => [{
-                        id: Date.now(),
-                        predict: sideMap[ai.side],
-                        result: res,
-                        status: isWin ? 'WIN' : 'LOSS',
-                        step: step,
-                        amount: currentBet
-                    }, ...prev]);
-
-                    if (isWin) {
-                        setCurrentBalance(prev => prev + (currentBet * 0.95));
-                        setStep(1);
-                    } else {
-                        setCurrentBalance(prev => prev - currentBet);
-                        setStep(prev => prev + 1);
-                    }
+                    const logEntry = { id: Date.now(), predict: sideMap[ai.side], result: res, status: isWin ? 'WIN' : 'LOSS', step: step, amount: currentBet };
+                    setLogs(prev => [logEntry, ...prev]);
+                    if (isWin) { setCurrentBalance(prev => prev + (currentBet * 0.95)); setStep(1); }
+                    else { setCurrentBalance(prev => prev - currentBet); setStep(prev => prev + 1); }
                 }
                 setHistory(prev => [...prev, res]);
             };
@@ -99,83 +84,70 @@
                 if (history.length === 0) return;
                 const lastRes = history[history.length - 1];
                 setHistory(prev => prev.slice(0, -1));
-
                 if (lastRes !== 'T' && logs.length > 0) {
                     const lastLog = logs[0];
                     setLogs(prev => prev.slice(1));
-                    if (lastLog.status === 'WIN') {
-                        setCurrentBalance(prev => prev - (lastLog.amount * 0.95));
-                        setStep(lastLog.step);
-                    } else {
-                        setCurrentBalance(prev => prev + lastLog.amount);
-                        setStep(lastLog.step);
-                    }
+                    if (lastLog.status === 'WIN') { setCurrentBalance(prev => prev - (lastLog.amount * 0.95)); setStep(lastLog.step); }
+                    else { setCurrentBalance(prev => prev + lastLog.amount); setStep(lastLog.step); }
                 }
             };
 
-            const resetAll = () => {
-                if(confirm("ล้างสถิติเพื่อเริ่มใหม่?")) {
-                    setHistory([]); setLogs([]); setStep(1); setCurrentBalance(totalCapital);
-                }
-            };
+            const resetAll = () => { if(confirm("ล้างสถิติทั้งหมด?")) { setHistory([]); setLogs([]); setStep(1); setCurrentBalance(totalCapital); } };
 
             return (
-                <div className="flex h-screen p-2 gap-2 overflow-hidden bg-slate-950 text-white">
-                    <div className="flex-1 flex flex-col gap-2 min-w-0">
-                        {/* Money Status */}
+                <div className="main-container max-w-7xl mx-auto p-2 md:p-4 flex flex-col md:flex-row gap-4 h-full md:h-screen">
+                    {/* Main Area */}
+                    <div className="flex-1 flex flex-col gap-3 min-w-0 h-full">
+                        
+                        {/* 1. Dashboard สรุปเงิน */}
                         <div className="grid grid-cols-3 gap-2">
                             <div className="cyber-panel p-2 rounded-xl text-center">
-                                <p className="text-[9px] text-gray-400 uppercase">ทุน</p>
-                                <input type="number" value={totalCapital} onChange={e => {setTotalCapital(Number(e.target.value)); setCurrentBalance(Number(e.target.value));}} className="bg-transparent text-lg font-black text-white text-center outline-none w-full" />
+                                <p className="text-[8px] md:text-[10px] text-gray-400 uppercase">ทุน</p>
+                                <input type="number" value={totalCapital} onChange={e => {setTotalCapital(Number(e.target.value)); setCurrentBalance(Number(e.target.value));}} className="bg-transparent text-sm md:text-lg font-black text-white text-center outline-none w-full" />
                             </div>
                             <div className="cyber-panel p-2 rounded-xl text-center border-yellow-500/20">
-                                <p className="text-[9px] text-yellow-500 font-bold uppercase">ยอดปัจจุบัน</p>
-                                <p className="text-lg font-black text-yellow-500">{currentBalance.toLocaleString(undefined, {maximumFractionDigits: 0})} ฿</p>
+                                <p className="text-[8px] md:text-[10px] text-yellow-500 font-bold uppercase">ยอดปัจจุบัน</p>
+                                <p className="text-sm md:text-lg font-black text-yellow-500">{currentBalance.toLocaleString(undefined, {maximumFractionDigits: 0})}฿</p>
                             </div>
                             <div className="cyber-panel p-2 rounded-xl text-center border-green-500/20">
-                                <p className="text-[9px] text-green-500 font-bold uppercase">กำไร/ขาดทุน</p>
-                                <p className={`text-lg font-black ${currentBalance - totalCapital >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                    {(currentBalance - totalCapital).toLocaleString(undefined, {maximumFractionDigits: 0})} ฿
-                                </p>
+                                <p className="text-[8px] md:text-[10px] text-green-500 font-bold uppercase">กำไร/ขาดทุน</p>
+                                <p className={`text-sm md:text-lg font-black ${currentBalance - totalCapital >= 0 ? 'text-green-400' : 'text-red-400'}`}>{(currentBalance - totalCapital).toLocaleString(undefined, {maximumFractionDigits: 0})}฿</p>
                             </div>
                         </div>
 
-                        {/* Prediction Core */}
-                        <div className="cyber-panel flex-1 rounded-3xl flex flex-col items-center justify-center p-4 relative">
-                            <div className="absolute top-4 left-4 flex gap-2">
-                                <span className="text-[10px] bg-sky-500/20 text-sky-400 px-2 py-1 rounded border border-sky-500/30">LOGIC: {ai.formula}</span>
-                            </div>
-                            <p className="text-gray-400 text-xs mb-1 uppercase tracking-widest italic">AI RECOMMENDED</p>
-                            <div className={`text-7xl font-black mb-4 ${ai.side === 'PLAYER' ? 'neon-blue' : ai.side === 'BANKER' ? 'neon-red' : 'text-gray-700'}`}>
+                        {/* 2. หน้าจอ AI (Prediction) */}
+                        <div className="cyber-panel flex-1 min-h-[180px] md:min-h-0 rounded-3xl flex flex-col items-center justify-center p-4 relative">
+                            <span className="absolute top-3 left-4 text-[9px] bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded border border-sky-500/30 uppercase tracking-tighter">{ai.formula}</span>
+                            <p className="text-gray-400 text-[10px] md:text-xs mb-1 uppercase tracking-widest italic">AI RECOMMENDED</p>
+                            <div className={`text-5xl md:text-7xl font-black mb-3 md:mb-5 ${ai.side === 'PLAYER' ? 'neon-blue' : ai.side === 'BANKER' ? 'neon-red' : 'text-gray-700'}`}>
                                 {ai.side === 'PLAYER' ? 'ผู้เล่น' : ai.side === 'BANKER' ? 'เจ้ามือ' : 'รอข้อมูล'}
                             </div>
-                            <div className="bg-slate-900/50 border border-white/10 px-12 py-3 rounded-2xl text-center">
-                                <p className="text-yellow-500 text-[10px] font-bold uppercase tracking-widest">{step === 1 ? 'WALK' : 'RECOVER'} ไม้ที่ {step}</p>
-                                <p className="text-4xl font-black">{currentBet.toLocaleString()} ฿</p>
+                            <div className="bg-slate-900/50 border border-white/10 px-8 md:px-12 py-2 md:py-3 rounded-2xl text-center">
+                                <p className="text-yellow-500 text-[9px] md:text-[10px] font-bold uppercase tracking-widest">{step === 1 ? 'เดินเงิน' : 'ทบเงิน'} ไม้ที่ {step}</p>
+                                <p className="text-2xl md:text-4xl font-black">{currentBet.toLocaleString()} ฿</p>
                             </div>
                         </div>
 
-                        {/* Controls */}
+                        {/* 3. ปุ่มกดและประวัติลูกบอล */}
                         <div className="cyber-panel p-3 rounded-3xl flex flex-col gap-3">
                             <div className="flex gap-2">
                                 <div className="grid grid-cols-3 gap-2 flex-1">
-                                    <button onClick={() => addResult('P')} className="h-14 bg-blue-600 hover:bg-blue-500 rounded-xl font-black text-2xl shadow-lg">P</button>
-                                    <button onClick={() => addResult('T')} className="h-14 bg-green-600 hover:bg-green-500 rounded-xl font-black text-2xl shadow-lg">T</button>
-                                    <button onClick={() => addResult('B')} className="h-14 bg-red-600 hover:bg-red-500 rounded-xl font-black text-2xl shadow-lg">B</button>
+                                    <button onClick={() => addResult('P')} className="h-12 md:h-16 bg-blue-600 active:bg-blue-400 rounded-xl font-black text-xl shadow-lg">P</button>
+                                    <button onClick={() => addResult('T')} className="h-12 md:h-16 bg-green-600 active:bg-green-400 rounded-xl font-black text-xl shadow-lg">T</button>
+                                    <button onClick={() => addResult('B')} className="h-12 md:h-16 bg-red-600 active:bg-red-400 rounded-xl font-black text-xl shadow-lg">B</button>
                                 </div>
-                                <button onClick={undoLast} className="w-16 h-14 bg-orange-500/10 text-orange-500 border border-orange-500/30 rounded-xl font-bold text-[10px]">ลบตา<br/>ล่าสุด</button>
+                                <button onClick={undoLast} className="w-12 md:w-16 h-12 md:h-16 bg-orange-500/10 text-orange-500 border border-orange-500/30 rounded-xl font-bold text-[9px]">ลบตา<br/>ล่าสุด</button>
                             </div>
 
-                            {/* Bead Plate */}
                             <div className="bg-slate-950/80 rounded-2xl p-2 border border-white/5">
-                                <div className="flex justify-between items-center mb-1 px-1">
-                                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">BEAD PLATE HISTORY</span>
-                                    <button onClick={resetAll} className="text-red-500 hover:text-white text-[9px] font-bold px-3 py-1 rounded-full border border-red-500/30 transition-all uppercase">RESET</button>
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest italic">ประวัติลูกบอล</span>
+                                    <button onClick={resetAll} className="text-red-500 text-[9px] font-bold px-2 py-0.5 rounded border border-red-500/30 uppercase">RESET</button>
                                 </div>
                                 <div className="overflow-x-auto custom-scrollbar p-1">
                                     <div className="grid grid-flow-col grid-rows-6 gap-1 w-max">
-                                        {Array.from({ length: Math.max(history.length + 15, 60) }).map((_, i) => (
-                                            <div key={i} className={`bead ${history[i] === 'P' ? 'bg-blue-600' : history[i] === 'B' ? 'bg-red-600' : history[i] === 'T' ? 'bg-green-600' : 'bg-slate-800'}`}>{history[i] || ''}</div>
+                                        {Array.from({ length: Math.max(history.length + 20, 50) }).map((_, i) => (
+                                            <div key={i} className={`bead ${history[i] === 'P' ? 'bg-blue-600 shadow-[0_0_5px_rgba(37,99,235,0.4)]' : history[i] === 'B' ? 'bg-red-600 shadow-[0_0_5px_rgba(220,38,38,0.4)]' : history[i] === 'T' ? 'bg-green-600' : 'bg-slate-800'}`}>{history[i] || ''}</div>
                                         ))}
                                     </div>
                                 </div>
@@ -183,30 +155,30 @@
                         </div>
                     </div>
 
-                    {/* Live Logs Sidebar */}
-                    <div className="w-64 cyber-panel rounded-3xl flex flex-col overflow-hidden">
-                        <div className="p-4 border-b border-white/10 bg-slate-900/50">
-                            <h3 className="font-black text-sky-400 text-xs mb-3 text-center uppercase tracking-widest">AI LIVE LOGS</h3>
-                            <div className="flex justify-around bg-slate-950/50 rounded-xl py-2 border border-white/5">
+                    {/* 4. สถิติ Log (ด้านข้างในคอม / ด้านล่างในมือถือ) */}
+                    <div className="w-full md:w-64 cyber-panel rounded-3xl flex flex-col h-[250px] md:h-full overflow-hidden mb-4 md:mb-0">
+                        <div className="p-3 border-b border-white/10 bg-slate-900/50 flex justify-between items-center md:block">
+                            <h3 className="font-black text-sky-400 text-[10px] md:text-xs text-center uppercase tracking-widest mb-0 md:mb-2">AI LIVE LOGS</h3>
+                            <div className="flex gap-4 md:justify-around bg-slate-950/50 rounded-lg md:rounded-xl py-1 md:py-2 px-3 md:px-0 border border-white/5">
                                 <div className="text-center">
-                                    <p className="text-[9px] text-gray-500 uppercase">WIN</p>
-                                    <p className="font-black text-green-400 text-lg">{logs.filter(l=>l.status==='WIN').length}</p>
+                                    <p className="text-[8px] text-gray-500 uppercase">WIN</p>
+                                    <p className="font-black text-green-400 text-sm md:text-lg">{logs.filter(l=>l.status==='WIN').length}</p>
                                 </div>
-                                <div className="w-px bg-white/10"></div>
+                                <div className="hidden md:block w-px bg-white/10"></div>
                                 <div className="text-center">
-                                    <p className="text-[9px] text-gray-500 uppercase">LOSS</p>
-                                    <p className="font-black text-red-400 text-lg">{logs.filter(l=>l.status==='LOSS').length}</p>
+                                    <p className="text-[8px] text-gray-400 uppercase">LOSS</p>
+                                    <p className="font-black text-red-400 text-sm md:text-lg">{logs.filter(l=>l.status==='LOSS').length}</p>
                                 </div>
                             </div>
                         </div>
                         <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar">
                             {logs.map(log => (
-                                <div key={log.id} className={`p-2 rounded-xl flex justify-between items-center text-xs ${log.status === 'WIN' ? 'bg-green-500/10 border-l-2 border-green-500' : 'bg-red-500/10 border-l-2 border-red-500'}`}>
+                                <div key={log.id} className={`p-2 rounded-xl flex justify-between items-center text-[10px] ${log.status === 'WIN' ? 'bg-green-500/10 border-l-2 border-green-500' : 'bg-red-500/10 border-l-2 border-red-500'}`}>
                                     <div>
-                                        <p className={`font-bold text-[10px] ${log.status === 'WIN' ? 'text-green-400' : 'text-red-400'}`}>{log.status} {log.step > 1 ? `(ไม้ ${log.step})` : ''}</p>
-                                        <p className="text-[9px] text-gray-500 italic">{log.amount}฿</p>
+                                        <p className={`font-bold text-[9px] ${log.status === 'WIN' ? 'text-green-400' : 'text-red-400'}`}>{log.status} {log.step > 1 ? `(ไม้ ${log.step})` : ''}</p>
+                                        <p className="text-[8px] text-gray-500 italic">{log.amount}฿</p>
                                     </div>
-                                    <p className="font-bold text-[11px]">{log.predict}➔{log.result}</p>
+                                    <p className="font-bold text-[10px] uppercase">{log.predict} ➜ {log.result}</p>
                                 </div>
                             ))}
                         </div>
